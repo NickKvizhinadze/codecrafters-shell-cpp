@@ -21,7 +21,7 @@ int main() {
 
     if (command.starts_with("echo"))
     {
-      std::cout << command.substr(4, command.length() - 4) << std::endl;
+      std::cout << command.substr(5, command.length() - 5) << std::endl;
       continue;
     }
 
