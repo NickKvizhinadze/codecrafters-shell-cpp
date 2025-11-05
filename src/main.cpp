@@ -32,7 +32,7 @@ int main()
             if (command == "exit" || command == "echo" || command == "type")
                 std::cout << command << " is a shell builtin" << std::endl;
             else
-                std::cout << command << " : not found" << std::endl;
+                std::cout << command << ": not found" << std::endl;
 
             continue;
         }
