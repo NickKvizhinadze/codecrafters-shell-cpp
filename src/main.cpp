@@ -34,7 +34,7 @@ bool checkPath(const std::string& command, std::string& outDir)
 
                 if (command == entry.path().stem())
                 {
-                    outDir = token;
+                    outDir = entry.path().string();
                     return true;
                 }
             }
