@@ -19,6 +19,12 @@ int main() {
     if (command == "exit 1")
       return 1;
 
+    if (command.starts_with("echo"))
+    {
+      std::cout << command.substr(4, command.length() - 4) << std::endl;
+      continue;
+    }
+
     std::cout << command << ": command not found" << std::endl;
   }
 }
