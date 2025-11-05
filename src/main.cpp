@@ -1,5 +1,48 @@
 #include <iostream>
 #include <string>
+#include <filesystem>
+#include <sstream>
+
+bool checkPath(const std::string& command, std::string& outDir)
+{
+#ifdef _WIN32
+    const std::string osPathSeparator(";");
+#else
+    const std::string osPathSeparator(":");
+#endif
+
+    const char delimiter = osPathSeparator.c_str()[0];
+    const char* path = std::getenv("PATH");
+    std::stringstream ss(path);
+    std::string token;
+
+    while (std::getline(ss, token, delimiter))
+    {
+        if (std::filesystem::exists(token) && std::filesystem::is_directory(token))
+        {
+            for (auto& entry : std::filesystem::directory_iterator(token))
+            {
+                std::error_code ec;
+                if (!std::filesystem::is_regular_file(entry, ec))
+                    continue;
+
+                auto perms = std::filesystem::status(entry).permissions();
+                if ((perms & std::filesystem::perms::owner_exec) == std::filesystem::perms::none &&
+                    (perms & std::filesystem::perms::group_exec) == std::filesystem::perms::none &&
+                    (perms & std::filesystem::perms::others_exec) == std::filesystem::perms::none)
+                    continue;
+
+                if (command == entry.path().stem())
+                {
+                    outDir = token;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
 
 int main()
 {
@@ -32,7 +75,17 @@ int main()
             if (command == "exit" || command == "echo" || command == "type")
                 std::cout << command << " is a shell builtin" << std::endl;
             else
-                std::cout << command << ": not found" << std::endl;
+            {
+                std::string outDir;
+                if (checkPath(command, outDir))
+                {
+                    std::cout << command << " is " << outDir << "\n";
+                }
+                else
+                {
+                    std::cout << command << ": not found" << std::endl;
+                }
+            }
 
             continue;
         }
