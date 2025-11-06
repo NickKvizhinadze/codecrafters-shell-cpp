@@ -3,6 +3,23 @@
 #include <filesystem>
 #include <sstream>
 
+std::vector<std::string> Split(const std::string& str, char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string token;
+
+    while (std::getline(ss, token, delimiter))
+    {
+        if (!token.empty())
+        {
+            result.push_back(token);
+        }
+    }
+
+    return result;
+}
+
 bool checkPath(const std::string& command, std::string& outDir)
 {
 #ifdef _WIN32
@@ -13,10 +30,10 @@ bool checkPath(const std::string& command, std::string& outDir)
 
     const char delimiter = osPathSeparator.c_str()[0];
     const char* path = std::getenv("PATH");
-    std::stringstream ss(path);
-    std::string token;
 
-    while (std::getline(ss, token, delimiter))
+    std::vector<std::string> pathVariables = Split(path, delimiter);
+
+    for (std::string token : pathVariables)
     {
         if (std::filesystem::exists(token) && std::filesystem::is_directory(token))
         {
@@ -87,6 +104,16 @@ int main()
                 }
             }
 
+            continue;
+        }
+
+        std::string outDir;
+        size_t spacePos = command.find(' ');
+        std::string commandWithoutVariable = command.substr(0, spacePos);
+
+        if (checkPath(commandWithoutVariable, outDir))
+        {
+            std::system(command.c_str());
             continue;
         }
 
