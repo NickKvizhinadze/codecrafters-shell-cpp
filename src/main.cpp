@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <sstream>
 #include <vector>
+#include "BuiltinsRegistry.h"
 
 std::vector<std::string> Split(const std::string& str, char delimiter)
 {
@@ -68,6 +69,36 @@ int main()
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
 
+    BuiltinsRegistry registry;
+
+    registry.RegisterCommand("echo",[](BuiltinsRegistry& reg, const std::string& args)
+    {
+        std::cout << args << std::endl;
+    });
+
+    registry.RegisterCommand("pwd",[](BuiltinsRegistry& reg, const std::string& args)
+    {
+        std::cout << std::filesystem::current_path().string() << "\n";
+    });
+
+    registry.RegisterCommand("type",[](BuiltinsRegistry& reg, const std::string& args)
+    {
+        if (args == "exit" || reg.HasCommand(args))
+            std::cout << args << " is a shell builtin" << std::endl;
+        else
+        {
+            std::string outDir;
+            if (checkPath(args, outDir))
+            {
+                std::cout << args << " is " << outDir << "\n";
+            }
+            else
+            {
+                std::cout << args << ": not found" << std::endl;
+            }
+        }
+    });
+
     while (true)
     {
         std::cout << "$ ";
@@ -81,44 +112,19 @@ int main()
         if (command == "exit 1")
             return 1;
 
-        if (command.starts_with("echo"))
-        {
-            std::cout << command.substr(5, command.length() - 5) << std::endl;
-            continue;
-        }
+        size_t spacePos = command.find(' ');
+        std::string commandWithoutArgs = command.substr(0, spacePos);
+        std::string args = command.substr(spacePos + 1);
 
-        if (command == "pwd")
+        if (registry.HasCommand(commandWithoutArgs))
         {
-            std::cout << std::filesystem::current_path().string() << "\n";
-            continue;
-        }
-
-        if (command.starts_with("type"))
-        {
-            command = command.substr(5, command.length() - 5);
-            if (command == "exit" || command == "echo" || command == "type" || command == "pwd")
-                std::cout << command << " is a shell builtin" << std::endl;
-            else
-            {
-                std::string outDir;
-                if (checkPath(command, outDir))
-                {
-                    std::cout << command << " is " << outDir << "\n";
-                }
-                else
-                {
-                    std::cout << command << ": not found" << std::endl;
-                }
-            }
-
+            registry.Execute(commandWithoutArgs, args);
             continue;
         }
 
         std::string outDir;
-        size_t spacePos = command.find(' ');
-        std::string commandWithoutVariable = command.substr(0, spacePos);
 
-        if (checkPath(commandWithoutVariable, outDir))
+        if (checkPath(commandWithoutArgs, outDir))
         {
             std::system(command.c_str());
             continue;
