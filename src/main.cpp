@@ -87,6 +87,12 @@ int main()
             continue;
         }
 
+        if (command == "pwd")
+        {
+            std::cout << std::filesystem::current_path() << "\n";
+            continue;
+        }
+
         if (command.starts_with("type"))
         {
             command = command.substr(5, command.length() - 5);
