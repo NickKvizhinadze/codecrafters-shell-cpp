@@ -5,6 +5,13 @@
 #include <vector>
 #include "BuiltinsRegistry.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+
 std::vector<std::string> Split(const std::string& str, char delimiter)
 {
     std::vector<std::string> result;
@@ -71,17 +78,32 @@ int main()
 
     BuiltinsRegistry registry;
 
-    registry.RegisterCommand("echo",[](BuiltinsRegistry& reg, const std::string& args)
+    registry.RegisterCommand("echo", [](BuiltinsRegistry& reg, const std::string& args)
     {
         std::cout << args << std::endl;
     });
 
-    registry.RegisterCommand("pwd",[](BuiltinsRegistry& reg, const std::string& args)
+    registry.RegisterCommand("pwd", [](BuiltinsRegistry& reg, const std::string& args)
     {
         std::cout << std::filesystem::current_path().string() << "\n";
     });
 
-    registry.RegisterCommand("type",[](BuiltinsRegistry& reg, const std::string& args)
+    registry.RegisterCommand("cd", [](BuiltinsRegistry& reg, const std::string& args)
+    {
+        if (!std::filesystem::exists(args))
+        {
+            std::cout << "cd: " << args << ": No such file or directory" << "\n";
+            return;
+        }
+
+#ifdef _WIN32
+        SetCurrentDirectoryA(args.c_str());
+#else
+        cddir(args.c_str());
+#endif
+    });
+
+    registry.RegisterCommand("type", [](BuiltinsRegistry& reg, const std::string& args)
     {
         if (args == "exit" || reg.HasCommand(args))
             std::cout << args << " is a shell builtin" << std::endl;
