@@ -96,7 +96,7 @@ int main()
         if (command.starts_with("type"))
         {
             command = command.substr(5, command.length() - 5);
-            if (command == "exit" || command == "echo" || command == "type")
+            if (command == "exit" || command == "echo" || command == "type" || command == "pwd")
                 std::cout << command << " is a shell builtin" << std::endl;
             else
             {
