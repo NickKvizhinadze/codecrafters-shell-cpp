@@ -99,7 +99,7 @@ int main()
 #ifdef _WIN32
         SetCurrentDirectoryA(args.c_str());
 #else
-        cddir(args.c_str());
+        chdir(args.c_str());
 #endif
     });
 
