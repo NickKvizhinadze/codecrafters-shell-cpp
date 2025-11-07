@@ -89,7 +89,7 @@ int main()
 
         if (command == "pwd")
         {
-            std::cout << std::filesystem::current_path() << "\n";
+            std::cout << std::filesystem::current_path().string() << "\n";
             continue;
         }
 
