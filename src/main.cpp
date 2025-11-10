@@ -70,6 +70,20 @@ bool checkPath(const std::string& command, std::string& outDir)
     return false;
 }
 
+std::string Join(const std::vector<std::string>& stringParts, std::string delimiter)
+{
+    std::string result;
+    for (int i = 0; i < stringParts.size(); i++)
+    {
+        if (i == 0)
+            result = stringParts[i];
+        else
+            result += ("/" + stringParts[i]);
+    }
+
+    return result;
+}
+
 int main()
 {
     // Flush after every std::cout / std:cerr
@@ -90,14 +104,51 @@ int main()
 
     registry.RegisterCommand("cd", [](BuiltinsRegistry& reg, const std::string& args)
     {
-        if (!std::filesystem::exists(args))
+        std::string newPath = args;
+
+        if (newPath == "~")
+        {
+#ifdef _WIN32
+           newPath = getenv("USERPROFILE");
+#else
+            newPath =getpwuid(getuid())->pw_dir
+#endif
+        }else
+        {
+            while (newPath.starts_with("./"))
+            {
+                newPath = newPath.substr(1, args.length() - 2);
+            }
+
+            if (newPath.starts_with(".."))
+            {
+                std::string currentPath = std::filesystem::current_path().string();
+
+                std::vector<std::string> pathParts = Split(currentPath, '\\');
+                while (newPath.starts_with("../"))
+                {
+                    if (newPath.size() == 0)
+                    {
+                        std::cout << "cd: " << args << ": No such file or directory" << "\n";
+                        return;
+                    }
+
+                    pathParts.erase(--pathParts.end());
+                    newPath = newPath.substr(2, pathParts.size() - 3);
+                }
+
+                newPath = Join(pathParts, "\\") + "\\" + newPath;
+            }
+        }
+
+        if (!std::filesystem::exists(newPath))
         {
             std::cout << "cd: " << args << ": No such file or directory" << "\n";
             return;
         }
 
 #ifdef _WIN32
-        SetCurrentDirectoryA(args.c_str());
+        SetCurrentDirectoryA(newPath.c_str());
 #else
         chdir(args.c_str());
 #endif
