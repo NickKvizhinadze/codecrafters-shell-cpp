@@ -112,7 +112,7 @@ int main()
 #ifdef _WIN32
            newPath = getenv("USERPROFILE");
 #else
-            newPath =getpwuid(getuid())->pw_dir
+            newPath = getpwuid(getuid())->pw_dir;
 #endif
         }else
         {
