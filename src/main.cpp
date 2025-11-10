@@ -8,6 +8,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <pwd.h>
 #include <unistd.h>
 #endif
 
