@@ -120,9 +120,17 @@ int main()
         if (newPath == "~")
         {
 #ifdef _WIN32
-           newPath = getenv("USERPROFILE");
+            newPath = getenv("USERPROFILE");
 #else
-            newPath = getpwuid(getuid())->pw_dir;
+            const char* home = getenv("HOME");
+            if (home != nullptr)
+            {
+                newPath = home;
+            }
+            else
+            {
+                newPath = getpwuid(getuid())->pw_dir;
+            }
 #endif
         }
         else if (newPath == "/")
