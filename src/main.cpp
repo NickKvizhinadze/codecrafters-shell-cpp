@@ -142,7 +142,7 @@ int main()
         {
             while (newPath.starts_with("./"))
             {
-                newPath = newPath.substr(2, args.length() - 2);
+                newPath = newPath.substr(2);
             }
 
             std::string currentPath = std::filesystem::current_path().string();
@@ -156,7 +156,7 @@ int main()
                 }
 
                 pathParts.erase(--pathParts.end());
-                newPath = newPath.substr(3, pathParts.size() - 3);
+                newPath = newPath.substr(3);
             }
 
             newPath = PathJoin(pathParts, pathDelimiter) + pathDelimiter + newPath;
