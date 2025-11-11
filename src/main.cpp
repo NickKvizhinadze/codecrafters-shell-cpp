@@ -124,7 +124,12 @@ int main()
 #else
             newPath = getpwuid(getuid())->pw_dir;
 #endif
-        }else
+        }
+        else if (newPath == "/")
+        {
+            newPath = std::filesystem::current_path().root_directory().string();
+        }
+        else
         {
             while (newPath.starts_with("./"))
             {
