@@ -71,7 +71,7 @@ bool checkPath(const std::string& command, std::string& outDir)
     return false;
 }
 
-std::string PathJoin(const std::vector<std::string>& stringParts, std::string delimiter)
+std::string PathJoin(const std::vector<std::string>& stringParts, char delimiter)
 {
     std::string result;
     for (int i = 0; i < stringParts.size(); i++)
@@ -80,9 +80,9 @@ std::string PathJoin(const std::vector<std::string>& stringParts, std::string de
         if (i == 0)
             result = stringParts[i];
         else
-            result += ("/" + stringParts[i]);
+            result += (delimiter + stringParts[i]);
 #else
-        result += ("/" + stringParts[i]);
+        result += (delimiter + stringParts[i]);
 #endif
     }
 
@@ -112,7 +112,8 @@ int main()
         std::string newPath = args;
 
         char pathDelimiter;
-#ifdef _WIN32     pathDelimiter = '\\';
+#ifdef _WIN32
+        pathDelimiter = '\\';
 #else
         pathDelimiter = '/';
 #endif
@@ -137,32 +138,28 @@ int main()
         {
             newPath = std::filesystem::current_path().root_directory().string();
         }
-        else
+        else if (newPath.starts_with("./") || newPath.starts_with("../"))
         {
             while (newPath.starts_with("./"))
             {
-                newPath = newPath.substr(1, args.length() - 2);
+                newPath = newPath.substr(2, args.length() - 2);
             }
 
-            if (newPath.starts_with(".."))
+            std::string currentPath = std::filesystem::current_path().string();
+            std::vector<std::string> pathParts = Split(currentPath, pathDelimiter);
+            while (newPath.starts_with("../"))
             {
-                std::string currentPath = std::filesystem::current_path().string();
-
-                std::vector<std::string> pathParts = Split(currentPath, pathDelimiter);
-                while (newPath.starts_with("../"))
+                if (pathParts.size() == 0)
                 {
-                    if (pathParts.size() == 0)
-                    {
-                        std::cout << "cd: " << args << ": No such file or directory" << "\n";
-                        return;
-                    }
-
-                    pathParts.erase(--pathParts.end());
-                    newPath = newPath.substr(3, pathParts.size() - 3);
+                    std::cout << "cd: " << args << ": No such file or directory" << "\n";
+                    return;
                 }
 
-                newPath = PathJoin(pathParts, std::string(1, pathDelimiter)) + pathDelimiter + newPath;
+                pathParts.erase(--pathParts.end());
+                newPath = newPath.substr(3, pathParts.size() - 3);
             }
+
+            newPath = PathJoin(pathParts, pathDelimiter) + pathDelimiter + newPath;
         }
 
         if (!std::filesystem::exists(newPath))
