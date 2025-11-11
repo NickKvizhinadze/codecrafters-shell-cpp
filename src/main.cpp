@@ -71,15 +71,19 @@ bool checkPath(const std::string& command, std::string& outDir)
     return false;
 }
 
-std::string Join(const std::vector<std::string>& stringParts, std::string delimiter)
+std::string PathJoin(const std::vector<std::string>& stringParts, std::string delimiter)
 {
     std::string result;
     for (int i = 0; i < stringParts.size(); i++)
     {
+#ifdef _WIN32
         if (i == 0)
             result = stringParts[i];
         else
             result += ("/" + stringParts[i]);
+#else
+        result += ("/" + stringParts[i]);
+#endif
     }
 
     return result;
@@ -107,6 +111,12 @@ int main()
     {
         std::string newPath = args;
 
+        char pathDelimiter;
+#ifdef _WIN32     pathDelimiter = '\\';
+#else
+        pathDelimiter = '/';
+#endif
+
         if (newPath == "~")
         {
 #ifdef _WIN32
@@ -125,20 +135,20 @@ int main()
             {
                 std::string currentPath = std::filesystem::current_path().string();
 
-                std::vector<std::string> pathParts = Split(currentPath, '\\');
+                std::vector<std::string> pathParts = Split(currentPath, pathDelimiter);
                 while (newPath.starts_with("../"))
                 {
-                    if (newPath.size() == 0)
+                    if (pathParts.size() == 0)
                     {
                         std::cout << "cd: " << args << ": No such file or directory" << "\n";
                         return;
                     }
 
                     pathParts.erase(--pathParts.end());
-                    newPath = newPath.substr(2, pathParts.size() - 3);
+                    newPath = newPath.substr(3, pathParts.size() - 3);
                 }
 
-                newPath = Join(pathParts, "\\") + "\\" + newPath;
+                newPath = PathJoin(pathParts, std::string(1, pathDelimiter)) + pathDelimiter + newPath;
             }
         }
 
@@ -151,7 +161,7 @@ int main()
 #ifdef _WIN32
         SetCurrentDirectoryA(newPath.c_str());
 #else
-        chdir(args.c_str());
+        chdir(newPath.c_str());
 #endif
     });
 
