@@ -89,6 +89,40 @@ std::string PathJoin(const std::vector<std::string>& stringParts, char delimiter
     return result;
 }
 
+std::vector<std::string> GenerateArguments(const std::string& args)
+{
+    std::vector<std::string> argsVector;
+    if (!args.starts_with('\''))
+    {
+        argsVector = Split(args, ' ');
+    }
+    else
+    {
+        bool isQuotesStarted = false;
+        std::string currentArg = "";
+        for (char ch : args)
+        {
+            if (ch == '\'')
+            {
+                isQuotesStarted = !isQuotesStarted;
+                if (!isQuotesStarted && currentArg != "")
+                {
+                    argsVector.push_back(currentArg);
+                    currentArg.clear();
+                }
+                continue;
+            }
+
+            if (isQuotesStarted)
+            {
+                currentArg += ch;
+            }
+        }
+    }
+
+    return argsVector;
+}
+
 int main()
 {
     // Flush after every std::cout / std:cerr
@@ -99,7 +133,14 @@ int main()
 
     registry.RegisterCommand("echo", [](BuiltinsRegistry& reg, const std::string& args)
     {
-        std::cout << args << std::endl;
+        std::vector<std::string> argsVector = GenerateArguments(args);
+        if (argsVector.size() > 0)
+        {
+            for (std::string arg : argsVector)
+            {
+                std::cout << arg << std::endl;
+            }
+        }
     });
 
     registry.RegisterCommand("pwd", [](BuiltinsRegistry& reg, const std::string& args)
