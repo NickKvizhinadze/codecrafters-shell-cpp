@@ -89,12 +89,42 @@ std::string PathJoin(const std::vector<std::string>& stringParts, char delimiter
     return result;
 }
 
-std::vector<std::string> GenerateArguments(const std::string& args)
+std::string StringJoin(const std::vector<std::string>& stringParts, char delimiter)
+{
+    std::string result;
+    for (int i = 0; i < stringParts.size(); i++)
+    {
+        if (i == 0)
+            result = stringParts[i];
+        else
+            result += (delimiter + stringParts[i]);
+    }
+
+    return result;
+}
+
+std::string RemoveCharacters(const std::string& str, char characterToRemove)
+{
+    std::string result = str;
+    result.erase(std::ranges::remove(result, '\'').begin(), result.end());
+    return result;
+}
+
+
+std::vector<std::string> GenerateArguments(const std::string& args, bool collapseSpaces)
 {
     std::vector<std::string> argsVector;
     if (!args.starts_with('\''))
     {
-        argsVector = Split(args, ' ');
+        std::string newArgs = RemoveCharacters(args, '\'');
+        if (collapseSpaces)
+        {
+            argsVector.push_back(StringJoin(Split(newArgs, ' '), ' '));
+        }
+        else
+        {
+            argsVector = Split(newArgs, ' ');
+        }
     }
     else
     {
@@ -105,11 +135,6 @@ std::vector<std::string> GenerateArguments(const std::string& args)
             if (ch == '\'')
             {
                 isQuotesStarted = !isQuotesStarted;
-                if (!isQuotesStarted && currentArg != "")
-                {
-                    argsVector.push_back(currentArg);
-                    currentArg.clear();
-                }
                 continue;
             }
 
@@ -117,7 +142,15 @@ std::vector<std::string> GenerateArguments(const std::string& args)
             {
                 currentArg += ch;
             }
+            else if (ch == ' ' && currentArg != "")
+            {
+                argsVector.push_back(currentArg);
+                currentArg.clear();
+            }
         }
+
+        if (currentArg != "")
+            argsVector.push_back(currentArg);
     }
 
     return argsVector;
@@ -133,7 +166,7 @@ int main()
 
     registry.RegisterCommand("echo", [](BuiltinsRegistry& reg, const std::string& args)
     {
-        std::vector<std::string> argsVector = GenerateArguments(args);
+        std::vector<std::string> argsVector = GenerateArguments(args, true);
         if (argsVector.size() > 0)
         {
             for (std::string arg : argsVector)
@@ -232,6 +265,10 @@ int main()
                 std::cout << args << ": not found" << std::endl;
             }
         }
+    });
+
+    registry.RegisterCommand("cat", [](BuiltinsRegistry& reg, const std::string& args)
+    {
     });
 
     while (true)
