@@ -106,7 +106,7 @@ std::string StringJoin(const std::vector<std::string>& stringParts, char delimit
 std::string RemoveCharacters(const std::string& str, char characterToRemove)
 {
     std::string result = str;
-    result.erase(std::ranges::remove(result, '\'').begin(), result.end());
+    result.erase(std::remove(result.begin(), result.end(), '\''), result.end());
     return result;
 }
 
