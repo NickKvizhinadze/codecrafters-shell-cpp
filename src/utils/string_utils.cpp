@@ -6,7 +6,7 @@
 
 namespace shell::string_utils
 {
-    std::vector<std::string> string_utils::split(const std::string& str, char delimiter)
+    std::vector<std::string> split(const std::string& str, char delimiter)
     {
         std::vector<std::string> result;
         std::stringstream ss(str);
@@ -23,7 +23,7 @@ namespace shell::string_utils
         return result;
     }
 
-    bool string_utils::check_path(const std::string& command, std::string& outDir)
+    bool check_path(const std::string& command, std::string& outDir)
     {
 #ifdef _WIN32
         const std::string osPathSeparator(";");
@@ -65,7 +65,7 @@ namespace shell::string_utils
     }
 
 
-    std::string string_utils::path_join(const std::vector<std::string>& stringParts, char delimiter)
+    std::string path_join(const std::vector<std::string>& stringParts, char delimiter)
     {
         std::string result;
         for (int i = 0; i < stringParts.size(); i++)
@@ -83,7 +83,7 @@ namespace shell::string_utils
         return result;
     }
 
-    std::string string_utils::string_join(const std::vector<std::string>& stringParts, char delimiter)
+    std::string string_join(const std::vector<std::string>& stringParts, char delimiter)
     {
         std::string result;
         for (int i = 0; i < stringParts.size(); i++)
@@ -97,7 +97,7 @@ namespace shell::string_utils
         return result;
     }
 
-    std::string string_utils::remove_characters(const std::string& str, char characterToRemove)
+    std::string remove_characters(const std::string& str, char characterToRemove)
     {
         std::string result = str;
         result.erase(std::remove(result.begin(), result.end(), '\''), result.end());
