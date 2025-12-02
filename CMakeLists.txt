@@ -8,4 +8,6 @@ set(CMAKE_CXX_STANDARD 23) # Enable the C++23 standard
 
 add_executable(shell ${SOURCE_FILES}
         src/BuiltinsRegistry.cpp
-        src/BuiltinsRegistry.h)
+        src/BuiltinsRegistry.h
+        src/utils/string_utils.cpp
+        src/utils/string_utils.h)

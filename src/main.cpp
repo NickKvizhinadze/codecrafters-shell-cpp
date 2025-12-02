@@ -1,9 +1,11 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
-#include <sstream>
 #include <vector>
 #include "BuiltinsRegistry.h"
+#include "utils/string_utils.h"
+
+namespace string_utils = shell::string_utils;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13,117 +15,19 @@
 #endif
 
 
-std::vector<std::string> Split(const std::string& str, char delimiter)
-{
-    std::vector<std::string> result;
-    std::stringstream ss(str);
-    std::string token;
-
-    while (std::getline(ss, token, delimiter))
-    {
-        if (!token.empty())
-        {
-            result.push_back(token);
-        }
-    }
-
-    return result;
-}
-
-bool checkPath(const std::string& command, std::string& outDir)
-{
-#ifdef _WIN32
-    const std::string osPathSeparator(";");
-#else
-    const std::string osPathSeparator(":");
-#endif
-
-    const char delimiter = osPathSeparator.c_str()[0];
-    const char* path = std::getenv("PATH");
-
-    std::vector<std::string> pathVariables = Split(path, delimiter);
-
-    for (std::string token : pathVariables)
-    {
-        if (std::filesystem::exists(token) && std::filesystem::is_directory(token))
-        {
-            for (auto& entry : std::filesystem::directory_iterator(token))
-            {
-                std::error_code ec;
-                if (!std::filesystem::is_regular_file(entry, ec))
-                    continue;
-
-                auto perms = std::filesystem::status(entry).permissions();
-                if ((perms & std::filesystem::perms::owner_exec) == std::filesystem::perms::none &&
-                    (perms & std::filesystem::perms::group_exec) == std::filesystem::perms::none &&
-                    (perms & std::filesystem::perms::others_exec) == std::filesystem::perms::none)
-                    continue;
-
-                if (command == entry.path().stem())
-                {
-                    outDir = entry.path().string();
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-std::string PathJoin(const std::vector<std::string>& stringParts, char delimiter)
-{
-    std::string result;
-    for (int i = 0; i < stringParts.size(); i++)
-    {
-#ifdef _WIN32
-        if (i == 0)
-            result = stringParts[i];
-        else
-            result += (delimiter + stringParts[i]);
-#else
-        result += (delimiter + stringParts[i]);
-#endif
-    }
-
-    return result;
-}
-
-std::string StringJoin(const std::vector<std::string>& stringParts, char delimiter)
-{
-    std::string result;
-    for (int i = 0; i < stringParts.size(); i++)
-    {
-        if (i == 0)
-            result = stringParts[i];
-        else
-            result += (delimiter + stringParts[i]);
-    }
-
-    return result;
-}
-
-std::string RemoveCharacters(const std::string& str, char characterToRemove)
-{
-    std::string result = str;
-    result.erase(std::remove(result.begin(), result.end(), '\''), result.end());
-    return result;
-}
-
-
 std::vector<std::string> GenerateArguments(const std::string& args, bool collapseSpaces)
 {
     std::vector<std::string> argsVector;
     if (!args.starts_with('\''))
     {
-        std::string newArgs = RemoveCharacters(args, '\'');
+        std::string newArgs = string_utils::remove_characters(args, '\'');
         if (collapseSpaces)
         {
-            argsVector.push_back(StringJoin(Split(newArgs, ' '), ' '));
+            argsVector.push_back(string_utils::string_join(string_utils::split(newArgs, ' '), ' '));
         }
         else
         {
-            argsVector = Split(newArgs, ' ');
+            argsVector = string_utils::split(newArgs, ' ');
         }
     }
     else
@@ -220,7 +124,7 @@ int main()
             }
 
             std::string currentPath = std::filesystem::current_path().string();
-            std::vector<std::string> pathParts = Split(currentPath, pathDelimiter);
+            std::vector<std::string> pathParts = string_utils::split(currentPath, pathDelimiter);
             while (newPath.starts_with("../"))
             {
                 if (pathParts.size() == 0)
@@ -233,7 +137,7 @@ int main()
                 newPath = newPath.substr(3);
             }
 
-            newPath = PathJoin(pathParts, pathDelimiter) + pathDelimiter + newPath;
+            newPath = string_utils::path_join(pathParts, pathDelimiter) + pathDelimiter + newPath;
         }
 
         if (!std::filesystem::exists(newPath))
@@ -256,7 +160,7 @@ int main()
         else
         {
             std::string outDir;
-            if (checkPath(args, outDir))
+            if (string_utils::check_path(args, outDir))
             {
                 std::cout << args << " is " << outDir << "\n";
             }
@@ -296,7 +200,7 @@ int main()
 
         std::string outDir;
 
-        if (checkPath(commandWithoutArgs, outDir))
+        if (string_utils::check_path(commandWithoutArgs, outDir))
         {
             std::system(command.c_str());
             continue;
