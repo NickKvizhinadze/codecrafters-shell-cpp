@@ -39,18 +39,15 @@ std::vector<std::string> GenerateArguments(const std::string& args, bool collaps
             if (ch == '\'')
             {
                 isQuotesStarted = !isQuotesStarted;
+                if (!isQuotesStarted)
+                {
+                    argsVector.push_back(currentArg);
+                    currentArg.clear();
+                }
                 continue;
             }
 
-            if (isQuotesStarted)
-            {
-                currentArg += ch;
-            }
-            else if (ch == ' ' && currentArg != "")
-            {
-                argsVector.push_back(currentArg);
-                currentArg.clear();
-            }
+            currentArg += ch;
         }
 
         if (currentArg != "")
@@ -75,8 +72,9 @@ int main()
         {
             for (std::string arg : argsVector)
             {
-                std::cout << arg << std::endl;
+                std::cout << arg;
             }
+            std::cout << std::endl;
         }
     });
 
