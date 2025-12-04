@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <fstream>
 #include <vector>
 #include "BuiltinsRegistry.h"
 #include "utils/string_utils.h"
@@ -39,7 +40,7 @@ std::vector<std::string> GenerateArguments(const std::string& args, bool collaps
             if (ch == '\'')
             {
                 isQuotesStarted = !isQuotesStarted;
-                if (!isQuotesStarted)
+                if (currentArg != "")
                 {
                     argsVector.push_back(currentArg);
                     currentArg.clear();
@@ -56,6 +57,33 @@ std::vector<std::string> GenerateArguments(const std::string& args, bool collaps
 
     return argsVector;
 }
+
+
+std::string read_file(const std::string& filePath)
+{
+    std::ifstream f(filePath);
+
+    // Check if the file is
+    // successfully opened
+    if (!f.is_open())
+    {
+        std::cerr << "Error opening the file!";
+        return "";
+    }
+
+    std::string s;
+
+    // Read each line of the file, store
+    // it in string s and print it to the
+    // standard output stream
+    while (getline(f, s))
+    {}
+
+    // Close the file
+    f.close();
+    return s;
+}
+
 
 int main()
 {
@@ -171,6 +199,17 @@ int main()
 
     registry.RegisterCommand("cat", [](BuiltinsRegistry& reg, const std::string& args)
     {
+        std::vector<std::string> argsVector = GenerateArguments(args, true);
+        if (argsVector.size() > 0)
+        {
+            for (std::string arg : argsVector)
+            {
+                if (arg == " " || arg == "")
+                    continue;
+                std::cout << read_file(arg);
+            }
+            std::cout << std::endl;
+        }
     });
 
     while (true)
