@@ -61,7 +61,7 @@ std::vector<std::string> GenerateArguments(const std::string& args, bool collaps
 
 std::string read_file(const std::string& filePath)
 {
-    std::ifstream f(filePath);
+    std::ifstream f(string_utils::remove_characters(filePath, '\''));
 
     // Check if the file is
     // successfully opened
